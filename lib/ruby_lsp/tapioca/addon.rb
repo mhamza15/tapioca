@@ -13,6 +13,7 @@ rescue LoadError
 end
 
 require "zlib"
+require "ruby_lsp/tapioca/run_gem_rbi_check"
 
 module RubyLsp
   module Tapioca
@@ -27,6 +28,7 @@ module RubyLsp
         @rails_runner_client = T.let(nil, T.nilable(RubyLsp::Rails::RunnerClient))
         @index = T.let(nil, T.nilable(RubyIndexer::Index))
         @file_checksums = T.let({}, T::Hash[String, String])
+        @lockfile_diff = T.let(nil, T.nilable(String))
         @outgoing_queue = T.let(nil, T.nilable(Thread::Queue))
       end
 
@@ -45,6 +47,13 @@ module RubyLsp
           @rails_runner_client = addon.rails_runner_client
           @outgoing_queue << Notification.window_log_message("Activating Tapioca add-on v#{version}")
           @rails_runner_client.register_server_addon(File.expand_path("server_addon.rb", __dir__))
+          @rails_runner_client.delegate_notification(
+            server_addon_name: "Tapioca",
+            request_name: "load_compilers_and_extensions",
+            workspace_path: @global_state.workspace_path,
+          )
+
+          run_gem_rbi_check
         rescue IncompatibleApiError
           # The requested version for the Rails add-on no longer matches. We need to upgrade and fix the breaking
           # changes
@@ -74,10 +83,24 @@ module RubyLsp
         return unless T.must(@global_state).enabled_feature?(:tapiocaAddon)
         return unless @rails_runner_client # Client is not ready
 
+        has_route_change = T.let(false, T::Boolean)
+        has_fixtures_change = T.let(false, T::Boolean)
+
         constants = changes.flat_map do |change|
           path = URI(change[:uri]).to_standardized_path
           next if path.end_with?("_test.rb", "_spec.rb")
           next unless file_updated?(change, path)
+
+          if File.basename(path) == "routes.rb" || File.fnmatch?("**/routes/**/*.rb", path, File::FNM_PATHNAME)
+            has_route_change = true
+            next
+          end
+
+          # NOTE: We only get notification for fixtures if ruby-lsp-rails is v0.3.31 or higher
+          if File.fnmatch("**/fixtures/**/*.yml{,.erb}", path, File::FNM_PATHNAME | File::FNM_EXTGLOB)
+            has_fixtures_change = true
+            next
+          end
 
           entries = T.must(@index).entries_for(change[:uri])
           next unless entries
@@ -87,14 +110,25 @@ module RubyLsp
           end
         end.compact
 
-        return if constants.empty?
+        return if constants.empty? && !has_route_change && !has_fixtures_change
 
         @rails_runner_client.trigger_reload
-        @rails_runner_client.delegate_notification(
-          server_addon_name: "Tapioca",
-          request_name: "dsl",
-          constants: constants,
-        )
+
+        if has_route_change
+          @rails_runner_client.delegate_notification(server_addon_name: "Tapioca", request_name: "route_dsl")
+        end
+
+        if has_fixtures_change
+          @rails_runner_client.delegate_notification(server_addon_name: "Tapioca", request_name: "fixtures_dsl")
+        end
+
+        if constants.any?
+          @rails_runner_client.delegate_notification(
+            server_addon_name: "Tapioca",
+            request_name: "dsl",
+            constants: constants,
+          )
+        end
       end
 
       private
@@ -126,6 +160,20 @@ module RubyLsp
         end
 
         false
+      end
+
+      sig { void }
+      def run_gem_rbi_check
+        gem_rbi_check = RunGemRbiCheck.new
+        gem_rbi_check.run
+
+        T.must(@outgoing_queue) << Notification.window_log_message(
+          gem_rbi_check.stdout,
+        ) unless gem_rbi_check.stdout.empty?
+        T.must(@outgoing_queue) << Notification.window_log_message(
+          gem_rbi_check.stderr,
+          type: Constant::MessageType::WARNING,
+        ) unless gem_rbi_check.stderr.empty?
       end
     end
   end

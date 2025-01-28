@@ -16,7 +16,7 @@ gem "rubocop-shopify"
 gem "rubocop-sorbet", ">= 0.4.1"
 gem "rubocop-rspec" # useful even though we use minitest/spec
 gem "ruby-lsp", ">= 0.23.1"
-gem "ruby-lsp-rails", ">= 0.3.28"
+gem "ruby-lsp-rails", ">= 0.3.31"
 
 group :deployment, :development do
   gem "rake"
@@ -43,10 +43,6 @@ group :development, :test do
   gem "state_machines"
   gem "activerecord-typedstore"
   gem "identity_cache"
-  gem "cityhash",
-    git: "https://github.com/csfrancis/cityhash.git",
-    ref: "3cfc7d01f333c01811d5e834f1495eaa29f87c36",
-    require: false
   gem "activeresource"
   gem "google-protobuf"
   gem "graphql"

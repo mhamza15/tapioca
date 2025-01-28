@@ -120,7 +120,11 @@ class RubyLsp::Rails::Addon < ::RubyLsp::Addon
   sig { params(id: ::String).void }
   def end_progress(id); end
 
-  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/addon.rb#240
+  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/addon.rb#243
+  sig { returns(::LanguageServer::Protocol::Interface::FileSystemWatcher) }
+  def fixture_file_watcher; end
+
+  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/addon.rb#251
   sig { void }
   def offer_to_run_pending_migrations; end
 
@@ -131,6 +135,10 @@ class RubyLsp::Rails::Addon < ::RubyLsp::Addon
   # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/addon.rb#200
   sig { params(id: ::String, percentage: T.nilable(::Integer), message: T.nilable(::String)).void }
   def report_progress(id, percentage: T.unsafe(nil), message: T.unsafe(nil)); end
+
+  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/addon.rb#235
+  sig { returns(::LanguageServer::Protocol::Interface::FileSystemWatcher) }
+  def structure_sql_file_watcher; end
 end
 
 # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/addon.rb#24
@@ -282,39 +290,39 @@ class RubyLsp::Rails::CodeLens
   def test_command; end
 end
 
-# source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/server.rb#12
+# source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/server.rb#9
 module RubyLsp::Rails::Common
   # Log a message to the editor's output panel
   #
-  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/server.rb#20
+  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/server.rb#17
   def log_message(message); end
 
   # Sends an error result to a request, if the request failed. DO NOT INVOKE THIS METHOD FOR NOTIFICATIONS! Use
   # `log_message` instead, otherwise the client/server communication will go out of sync
   #
-  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/server.rb#26
+  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/server.rb#23
   def send_error_response(message); end
 
   # Write a message to the client. Can be used for sending notifications to the editor
   #
-  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/server.rb#14
+  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/server.rb#11
   def send_message(message); end
 
   # Sends a result back to the client
   #
-  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/server.rb#31
+  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/server.rb#28
   def send_result(result); end
 
   # Handle possible errors for a notification. This should only be used for notifications, which means messages that
   # do not return a response back to the client. Errors are logged to the editor's output panel
   #
-  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/server.rb#50
+  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/server.rb#47
   def with_notification_error_handling(notification_name, &block); end
 
   # Handle possible errors for a request. This should only be used for requests, which means messages that return a
   # response back to the client. Errors are returned as an error object back to the client
   #
-  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/server.rb#37
+  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/server.rb#34
   def with_request_error_handling(request_name, &block); end
 end
 
@@ -566,35 +574,35 @@ class RubyLsp::Rails::IndexingEnhancement < ::RubyIndexer::Enhancement
   def handle_concern_extend(owner, call_node); end
 end
 
-# source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/runner_client.rb#341
+# source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/runner_client.rb#343
 class RubyLsp::Rails::NullClient < ::RubyLsp::Rails::RunnerClient
-  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/runner_client.rb#345
+  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/runner_client.rb#347
   sig { void }
   def initialize; end
 
-  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/runner_client.rb#359
+  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/runner_client.rb#361
   sig { override.returns(::String) }
   def rails_root; end
 
-  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/runner_client.rb#349
+  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/runner_client.rb#351
   sig { override.void }
   def shutdown; end
 
-  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/runner_client.rb#354
+  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/runner_client.rb#356
   sig { override.returns(T::Boolean) }
   def stopped?; end
 
   private
 
-  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/runner_client.rb#366
+  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/runner_client.rb#368
   sig { params(message: ::String, type: ::Integer).void }
   def log_message(message, type: T.unsafe(nil)); end
 
-  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/runner_client.rb#376
+  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/runner_client.rb#378
   sig { override.returns(T.nilable(T::Hash[::Symbol, T.untyped])) }
   def read_response; end
 
-  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/runner_client.rb#371
+  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/runner_client.rb#373
   sig { override.params(request: ::String, params: T.untyped).void }
   def send_message(request, **params); end
 end
@@ -605,19 +613,19 @@ class RubyLsp::Rails::RunnerClient
   sig { params(outgoing_queue: ::Thread::Queue).void }
   def initialize(outgoing_queue); end
 
-  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/runner_client.rb#143
+  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/runner_client.rb#145
   sig { params(model_name: ::String, association_name: ::String).returns(T.nilable(T::Hash[::Symbol, T.untyped])) }
   def association_target_location(model_name:, association_name:); end
 
   # Delegates a notification to a server add-on
   #
-  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/runner_client.rb#181
+  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/runner_client.rb#183
   sig { params(server_addon_name: ::String, request_name: ::String, params: T.untyped).void }
   def delegate_notification(server_addon_name:, request_name:, **params); end
 
   # Delegates a request to a server add-on
   #
-  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/runner_client.rb#221
+  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/runner_client.rb#223
   sig do
     params(
       server_addon_name: ::String,
@@ -627,15 +635,15 @@ class RubyLsp::Rails::RunnerClient
   end
   def delegate_request(server_addon_name:, request_name:, **params); end
 
-  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/runner_client.rb#266
+  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/runner_client.rb#268
   sig { params(request: ::String, params: T.untyped).returns(T.nilable(T::Hash[::Symbol, T.untyped])) }
   def make_request(request, **params); end
 
-  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/runner_client.rb#127
+  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/runner_client.rb#129
   sig { params(name: ::String).returns(T.nilable(T::Hash[::Symbol, T.untyped])) }
   def model(name); end
 
-  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/runner_client.rb#191
+  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/runner_client.rb#193
   sig { returns(T.nilable(::String)) }
   def pending_migrations_message; end
 
@@ -643,59 +651,59 @@ class RubyLsp::Rails::RunnerClient
   sig { returns(::String) }
   def rails_root; end
 
-  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/runner_client.rb#116
+  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/runner_client.rb#118
   sig { params(server_addon_path: ::String).void }
   def register_server_addon(server_addon_path); end
 
-  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/runner_client.rb#169
+  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/runner_client.rb#171
   sig { params(controller: ::String, action: ::String).returns(T.nilable(T::Hash[::Symbol, T.untyped])) }
   def route(controller:, action:); end
 
-  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/runner_client.rb#158
+  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/runner_client.rb#160
   sig { params(name: ::String).returns(T.nilable(T::Hash[::Symbol, T.untyped])) }
   def route_location(name); end
 
-  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/runner_client.rb#203
+  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/runner_client.rb#205
   sig { returns(T.nilable(T::Hash[::Symbol, T.untyped])) }
   def run_migrations; end
 
   # Notifications are like messages, but one-way, with no response sent back.
   #
-  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/runner_client.rb#273
+  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/runner_client.rb#275
   sig { params(request: ::String, params: T.untyped).void }
   def send_notification(request, **params); end
 
-  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/runner_client.rb#245
+  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/runner_client.rb#247
   sig { void }
   def shutdown; end
 
-  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/runner_client.rb#256
+  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/runner_client.rb#258
   sig { returns(T::Boolean) }
   def stopped?; end
 
-  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/runner_client.rb#233
+  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/runner_client.rb#235
   sig { void }
   def trigger_reload; end
 
   private
 
-  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/runner_client.rb#317
+  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/runner_client.rb#319
   sig { void }
   def force_kill; end
 
-  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/runner_client.rb#323
+  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/runner_client.rb#325
   sig { params(message: ::String, type: ::Integer).void }
   def log_message(message, type: T.unsafe(nil)); end
 
-  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/runner_client.rb#330
+  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/runner_client.rb#332
   sig { returns(T.nilable(::Integer)) }
   def read_content_length; end
 
-  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/runner_client.rb#291
+  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/runner_client.rb#293
   sig { overridable.returns(T.nilable(T::Hash[::Symbol, T.untyped])) }
   def read_response; end
 
-  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/runner_client.rb#278
+  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/runner_client.rb#280
   sig { overridable.params(request: ::String, params: T.untyped).void }
   def send_message(request, **params); end
 
@@ -715,84 +723,92 @@ class RubyLsp::Rails::RunnerClient::InitializationError < ::StandardError; end
 # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/runner_client.rb#46
 class RubyLsp::Rails::RunnerClient::MessageError < ::StandardError; end
 
-# source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/server.rb#103
+# source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/server.rb#100
 class RubyLsp::Rails::Server
   include ::RubyLsp::Rails::Common
 
   # @return [Server] a new instance of Server
   #
-  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/server.rb#106
+  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/server.rb#103
   def initialize(stdout: T.unsafe(nil), override_default_output_device: T.unsafe(nil)); end
 
-  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/server.rb#139
+  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/server.rb#137
   def execute(request, params); end
 
-  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/server.rb#126
+  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/server.rb#123
   def start; end
 
   private
 
   # @return [Boolean]
   #
-  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/server.rb#267
+  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/server.rb#265
   def active_record_model?(const); end
 
-  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/server.rb#298
+  # File system resolver hooks spawn file watcher threads which introduce unnecessary overhead since the LSP already
+  # watches files. Since the Rails application is already booted by the time we reach this script, we can't no-op
+  # the file watcher implementation. Instead, we clear the hooks to prevent the registered file watchers from being
+  # instantiated
+  #
+  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/server.rb#308
+  def clear_file_system_resolver_hooks; end
+
+  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/server.rb#296
   def load_routes; end
 
-  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/server.rb#277
+  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/server.rb#275
   def pending_migrations_message; end
 
-  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/server.rb#255
+  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/server.rb#253
   def resolve_association_target(params); end
 
-  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/server.rb#239
+  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/server.rb#237
   def resolve_database_info_from_model(model_name); end
 
-  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/server.rb#188
+  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/server.rb#186
   def resolve_route_info(requirements); end
 
-  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/server.rb#234
+  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/server.rb#232
   def route_location(name); end
 
-  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/server.rb#287
+  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/server.rb#285
   def run_migrations; end
 end
 
-# source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/server.rb#62
+# source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/server.rb#59
 class RubyLsp::Rails::ServerAddon
   include ::RubyLsp::Rails::Common
 
   # @return [ServerAddon] a new instance of ServerAddon
   #
-  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/server.rb#90
+  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/server.rb#87
   def initialize(stdout); end
 
   # @raise [NotImplementedError]
   #
-  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/server.rb#98
+  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/server.rb#95
   def execute(request, params); end
 
   # @raise [NotImplementedError]
   #
-  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/server.rb#94
+  # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/server.rb#91
   def name; end
 
   class << self
     # Delegate `request` with `params` to the server add-on with the given `name`
     #
-    # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/server.rb#77
+    # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/server.rb#74
     def delegate(name, request, params); end
 
     # Instantiate all server addons and store them in a hash for easy access after we have discovered the classes
     #
-    # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/server.rb#82
+    # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/server.rb#79
     def finalize_registrations!(stdout); end
 
     # We keep track of runtime server add-ons the same way we track other add-ons, by storing classes that inherit
     # from the base one
     #
-    # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/server.rb#71
+    # source://ruby-lsp-rails/lib/ruby_lsp/ruby_lsp_rails/server.rb#68
     def inherited(child); end
   end
 end
